@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+  prometheus:
+    image: bitnami/prometheus:latest
+    volumes:
+      - ./prometheus/data:/opt/bitnami/prometheus/data
+      - ./prometheus/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
+    networks:
+      - pr-network
+    container_name: "prometheus"
+
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    networks:
+      - pr-network
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      - grafana-storage:/var/lib/grafana
+    container_name: "prom_grafana"
+
+
+  node-exporter:
+    image: bitnami/node-exporter:latest
+    networks:
+      - pr-network
+    container_name: "node-exporter"
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    networks:
+      - pr-network
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd
+    depends_on:
+      - prometheus
+    container_name: "nginx"
+        
+volumes:
+  grafana-storage: {}
+
+
+networks:
+  pr-network:
+    driver: bridge 
